@@ -1,0 +1,199 @@
+﻿@using AbpLearn.Web.Startup
+@using AbpLearn.Web.Views.Shared.Components.TenantChange
+@using AbpLearn.Sessions.Dto
+@model ChangeModalViewModel
+@{
+    GetCurrentLoginInformationsOutput getCurrentLoginInformationsOutput = ViewBag.LoginInfo;
+    ViewBag.Title = L("Menus");
+    ViewBag.CurrentPageName = "";
+}
+@section styles
+{
+    <link href="~/jstree/themes/default/style.css" rel="stylesheet" />
+}
+<section class="content-header">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-sm-6">
+                <h1>@L("Menus")</h1>
+            </div>
+            <div class="col-sm-6">
+                @if (getCurrentLoginInformationsOutput.Tenant == null)
+                {
+                    <a href="javascript:;" data-toggle="modal" data-target="#MenuCreateModal" class="btn bg-blue float-sm-right">
+                        <i class="fa fa-plus-square"></i>
+                        @L("Create")
+                    </a>
+                    <a href="javascript:;" id="GivePermissions" data-tenant-id="@(Model.TenantId)" class="btn bg-danger float-sm-right" style="margin-right: 10px;">
+                        <i class="fa fa-bug"></i>
+                        赋予权限
+                    </a>
+                }
+            </div>
+        </div>
+    </div>
+</section>
+<section class="content">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <!--Use for bulk actions-->
+                            </div>
+                            <div class="col-md-6">
+                                @if (getCurrentLoginInformationsOutput.Tenant == null)
+                                {
+                                    @await Html.PartialAsync("~/Views/Menus/Index.AdvancedSearch.cshtml", Model)
+                                }
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <div id="jstree1" style="width:100%;"></div>
+                            @*<table id="MenusTable" class="table table-striped table-bordered">
+                                    <thead>
+                                        <tr>
+                                            <th></th>
+                                            <th>@L("Id")</th>
+                                            <th>@L("PageName")</th>
+                                            <th>@L("MenuName")</th>
+                                            <th>@L("Url")</th>
+                                            <th>@L("Icon")</th>
+                                            <th>@L("ParentId")</th>
+                                            <th>@L("Orders")</th>
+                                            <th>@L("IsActive")</th>
+                                            <th style="width: 150px">@L("Actions")</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody></tbody>
+                                </table>*@
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+@await Html.PartialAsync("~/Views/Menus/_CreateModal.cshtml", Model.TenantId)
+
+<div class="modal fade" id="MenuEditModal" tabindex="-1" role="dialog" aria-labelledby="MenuEditModalLabel" data-backdrop="static">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+        </div>
+    </div>
+</div>
+
+@section scripts
+{
+    <environment names="Development">
+        <script src="~/view-resources/Views/Menus/Index.js" asp-append-version="true"></script>
+    </environment>
+
+    <environment names="Staging,Production">
+        <script src="~/view-resources/Views/Menus/Index.min.js" asp-append-version="true"></script>
+    </environment>
+    <script type="application/javascript" src="~/jstree/jstree.js"></script>
+    <script type="application/javascript" src="~/jstree/jstree.contextmenu.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            var _menuService = abp.services.app.menus;
+
+            l = abp.localization.getSource('A_b_p');
+
+            $('#jstree1').jstree({
+                "core": {
+                    "data": function (node, callback) {
+                        var filter = $('#MenusSearchForm').serializeFormToObject(true);
+                        this, _menuService.getTree(filter).done(function (result) {
+                            callback.call(this, JSON.parse(result));
+                        });
+                    },
+                    "themes": {
+                        "variant": "large",//加大
+                        "ellipsis": true //文字多时省略
+                    },
+                    "check_callback": true,
+                },
+                "plugins": ["contextmenu", "wholerow", "themes"],//"checkbox"
+                "contextmenu": {
+                    select_node: false,
+                    show_at_node: true,
+                    "items": {
+                        "create": {
+                            "label": "新增子菜单",
+                            "action": function (obj) {
+                                var inst = jQuery.jstree.reference(obj.reference);
+                                var clickedNode = inst.get_node(obj.reference);
+                                if (parseInt(clickedNode.original.id) >= 0) {
+                                    $("#ParentId").val(clickedNode.original.id);
+                                    $("#MenuCreateModal").modal();
+                                } else {
+                                    abp.notify.info("父节点获取出错");
+                                }
+                            },
+                        },
+                        "rename": {
+                            "label": "修改",
+                            "action": function (obj) {
+                                var inst = jQuery.jstree.reference(obj.reference);
+                                var clickedNode = inst.get_node(obj.reference);
+                                if (parseInt(clickedNode.original.id) >= 0) {
+                                    abp.ajax({
+                                        url: abp.appPath + 'Menus/EditModal?menuId=' + clickedNode.original.id,
+                                        type: 'POST',
+                                        dataType: 'html',
+                                        success: function (content) {
+                                            $("#MenuEditModal").modal();
+                                            $('#MenuEditModal div.modal-content').html(content);
+                                        },
+                                        error: function (e) { }
+                                    });
+                                } else {
+                                    abp.notify.info("菜单获取出错");
+                                }
+                            }
+                        },
+                        "delete": {
+                            "label": "更改菜单状态",
+                            "action": function (obj) {
+                                var inst = jQuery.jstree.reference(obj.reference);
+                                var clickedNode = inst.get_node(obj.reference);
+                                abp.message.confirm(
+                                    abp.utils.formatString("是否" + (clickedNode.original.state.disabled?"启用":"禁用") + "当前菜单：" + clickedNode.original.text + "?"),
+                                    null,
+                                    (isConfirmed) => {
+                                        if (isConfirmed) {
+                                            _menuService
+                                                .delete({
+                                                    id: clickedNode.original.id
+                                                })
+                                                .done(() => {
+                                                    abp.notify.info(l('SuccessfullyDeleted'));
+                                                    location.reload();
+                                                });
+                                        }
+                                    }
+                                );
+                            },
+
+                        }
+                    }
+                }
+            }).on('select_node.jstree', function (event, data) {
+                console.log(data.node);
+            }).on('changed.jstree', function (event, data) {
+                console.log("-----------changed.jstree");
+                console.log("action:" + data.action);
+                console.log(data.node);
+            });
+
+        });
+
+
+    </script>
+}

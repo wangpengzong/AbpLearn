@@ -1,0 +1,17 @@
+﻿@using AbpLearn.Web.Views.Shared.Components.TenantChange
+@using Abp.Application.Services.Dto
+@model ChangeModalViewModel
+
+    <div class="abp-advanced-search">
+        <form id="MenusSearchForm" class="form-horizontal">
+            <input type="hidden" name="TenantId" value="@Model.TenantId" />
+            </form>
+            <div class="form-horizontal">
+                <div class="form-group">
+                    @Html.DropDownList(
+                       "ChangeTenancyNames",
+                       Model.TeneacyItems.Select(i => i.ToSelectListItem()),
+                       new { @class = "form-control edited", id = "ChangeTenancyName" })
+                </div>
+            </div>
+    </div>

@@ -1,0 +1,64 @@
+﻿@using Abp.Authorization.Users
+@using Abp.MultiTenancy
+@using AbpLearn.MultiTenancy
+@using AbpLearn.Web.Models.Common.Modals
+@model int
+@{
+    Layout = null;
+}
+<div class="modal fade" id="MenuCreateModal" tabindex="-1" role="dialog" aria-labelledby="MenuCreateModalLabel" data-backdrop="static">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            @await Html.PartialAsync("~/Views/Shared/Modals/_ModalHeader.cshtml", new ModalHeaderViewModel(L("CreateNewMenu")))
+            <form name="MenuCreateModal" role="form" class="form-horizontal">
+                <div class="modal-body">
+                    <div class="form-group row required">
+                        <label class="col-md-3 col-form-label">@L("MenuName")</label>
+                        <div class="col-md-9">
+                            <input type="text" name="MenuName" class="form-control" required minlength="2">
+                        </div>
+                    </div>
+                    <div class="form-group row required">
+                        <label class="col-md-3 col-form-label">@L("LName")</label>
+                        <div class="col-md-9">
+                            <input type="text" name="LName" class="form-control" required>
+                        </div>
+                    </div>
+                    <div class="form-group row required">
+                        <label class="col-md-3 col-form-label">@L("Url")</label>
+                        <div class="col-md-9">
+                            <input type="text" name="Url" class="form-control">
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="col-md-3 col-form-label">@L("PageName")</label>
+                        <div class="col-md-9">
+                            <input type="text" name="PageName" class="form-control">
+                        </div>
+                    </div>
+                    @*<div class="form-group row">
+                <label class="col-md-3 col-form-label">@L("ParentId")</label>
+                <div class="col-md-9">
+                    <input type="text" name="ParentId" class="form-control">
+                </div>
+            </div>*@
+                    <div class="form-group row">
+                        <label class="col-md-3 col-form-label">@L("Orders")</label>
+                        <div class="col-md-9">
+                            <input type="text" name="Orders" class="form-control">
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="col-md-3 col-form-label" for="CreateMenuIsActive">@L("IsActive")</label>
+                        <div class="col-md-9">
+                            <input id="CreateMenuIsActive" type="checkbox" name="IsActive" value="true" checked />
+                        </div>
+                    </div>
+                </div>
+                <input type="hidden" name="TenantId" value="@(Model)" />
+                <input type="hidden" name="ParentId" id="ParentId" value="0" />
+                @await Html.PartialAsync("~/Views/Shared/Modals/_ModalFooterWithSaveAndCancel.cshtml")
+            </form>
+        </div>
+    </div>
+</div>
